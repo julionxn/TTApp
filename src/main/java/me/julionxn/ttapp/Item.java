@@ -3,6 +3,8 @@ package me.julionxn.ttapp;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -11,6 +13,7 @@ import javafx.scene.shape.Rectangle;
 import lombok.Getter;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class Item {
@@ -21,10 +24,10 @@ public class Item {
     private final StackPane pane;
     private final Map<String, Consumer<Item>> actions;
 
-    public Item(int id, Map<String, Consumer<Item>> actions) {
+    public Item(int id, Map<String, Consumer<Item>> actions, BiConsumer<Item, KeyEvent> keybinds) {
         this.id = id;
         String display = "Usuario: " + id;
-        this.pane = buildStackPane(display);
+        this.pane = buildStackPane(display, keybinds);
         this.actions = actions;
     }
 
@@ -32,7 +35,7 @@ public class Item {
         rect.setFill(color);
     }
 
-    private StackPane buildStackPane(String display) {
+    private StackPane buildStackPane(String display, BiConsumer<Item, KeyEvent> keybinds) {
         StackPane pane = new StackPane();
         pane.setPrefSize(250, 20);
         rect = new Rectangle(250, 20);
@@ -42,6 +45,13 @@ public class Item {
         pane.setOnMouseClicked(e -> {
             showContextMenu(e.getScreenX(), e.getScreenY());
         });
+        pane.setOnMouseEntered(e -> pane.requestFocus());
+        if (keybinds != null) {
+            pane.setFocusTraversable(true);
+            rect.setOnKeyPressed(e -> keybinds.accept(this, e));
+            label.setOnKeyPressed(e -> keybinds.accept(this, e));
+            pane.setOnKeyPressed(e -> keybinds.accept(this, e));
+        }
         return pane;
     }
 

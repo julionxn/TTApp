@@ -19,8 +19,10 @@ public class User {
     private Long timeStartProduction;
     private Long timeStartProductGive; //ya
     private Long timeEndProductGive; //ya
+    private Long arrivalPreparation;
     private Long timeStartPreparation; //ya
     private Long timeEndPreparation; //ya
+    private Long arrivalCash;
     private Long timeStartCash;
     private Long timeEndCash;
     private Long endTime;

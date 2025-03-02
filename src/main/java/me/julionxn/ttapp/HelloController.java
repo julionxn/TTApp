@@ -2,8 +2,9 @@ package me.julionxn.ttapp;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import me.julionxn.ttapp.endpoint.EndpointsManager;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class HelloController implements Initializable {
@@ -44,6 +46,7 @@ public class HelloController implements Initializable {
         this.preparation = new QueueManager(preparationQueue);
         this.cash = new QueueManager(cashQueue);
         root.setOnKeyPressed(e -> {
+            System.out.println("XD");
             if (e.getCode() == KeyCode.Q) {
                 newQueue();
             }
@@ -60,8 +63,8 @@ public class HelloController implements Initializable {
         put("Elote", item -> addProduct(item, Product.ELOTE));
         put("Esquite", item -> addProduct(item, Product.ESQUITE));
         put("Charola", item -> addProduct(item, Product.CHAROLA));
-        put("Preparación", HelloController.this::startPreparation);
-        put("Pago", HelloController.this::startCash);
+        put("Preparación", HelloController.this::arrivalPreparation);
+        put("Pago", HelloController.this::arrivalCash);
         put("Listo", HelloController.this::endAttendance);
     }};
 
@@ -73,24 +76,87 @@ public class HelloController implements Initializable {
     }
 
     private final Map<String, Consumer<Item>> cashActions = new HashMap<>(){{
-        put("Preparación", HelloController.this::startPreparation);
+        put("Preparación", HelloController.this::arrivalPreparation);
         put("Listo", HelloController.this::endCash);
+        put("Empezar", HelloController.this::startCash);
         put("Salida", HelloController.this::end);
     }};
+
+    private final BiConsumer<Item, KeyEvent> cashKeybinds = (item, e) -> {
+        System.out.println("CASH");
+        KeyCode keyCode = e.getCode();
+        switch (keyCode) {
+            case E -> endCash(item);
+            case W -> startCash(item);
+        }
+    };
+
+    private final BiConsumer<Item, KeyEvent> queueKeybinds = (item, e) -> {
+        System.out.println("QUEUE");
+        KeyCode keyCode = e.getCode();
+        switch (keyCode) {
+            case E -> end(item);
+            case W -> startAttendance(item);
+        }
+    };
 
     private final Map<String, Consumer<Item>> preparationActions = new HashMap<>(){{
-        put("Pago", HelloController.this::startCash);
+        put("Pago", HelloController.this::arrivalCash);
         put("Listo", HelloController.this::endPreparation);
+        put("Empezar", HelloController.this::startPreparation);
         put("Salida", HelloController.this::end);
     }};
 
-    private void startCash(Item item) {
+    private final BiConsumer<Item, KeyEvent> preparationKeybinds = (item, e) -> {
+        System.out.println("PREP");
+        KeyCode keyCode = e.getCode();
+        switch (keyCode) {
+            case E -> endPreparation(item);
+            case W -> startPreparation(item);
+        }
+    };
+
+    private final BiConsumer<Item, KeyEvent> attendanceKeybinds = (item, e) -> {
+        KeyCode keyCode = e.getCode();
+        switch (keyCode) {
+            case E -> endAttendance(item);
+            case W -> startProduction(item);
+        }
+    };
+
+    private void arrivalCash(Item item) {
         int id = item.getId();
         User currentUser = usersInSystem.get(id);
         currentUser.getFlow().add(Stops.CASH);
-        currentUser.setTimeStartCash(DatesUtil.now());
-        Item aItem = new Item(id, cashActions);
+        currentUser.setArrivalCash(DatesUtil.now());
+        Item aItem = new Item(id, cashActions, cashKeybinds);
         cash.addItem(aItem);
+    }
+
+    private void startCash(Item item){
+        int id = item.getId();
+        User currentUser = usersInSystem.get(id);
+        Long arrivalCash = currentUser.getArrivalCash();
+        Long current = DatesUtil.now();
+        if (current - arrivalCash <= margin){
+            currentUser.setTimeStartCash(arrivalCash);
+        } else {
+            currentUser.setTimeStartCash(current);
+        }
+        item.changeColor(Color.PALEVIOLETRED);
+    }
+
+    private void startPreparation(Item item){
+        int id = item.getId();
+        User currentUser = usersInSystem.get(id);
+        Long arrivalPreparation = currentUser.getArrivalPreparation();
+        Long current = DatesUtil.now();
+        if (current - arrivalPreparation <= margin){
+            currentUser.setTimeStartPreparation(arrivalPreparation);
+        } else {
+            currentUser.setTimeStartPreparation(current);
+        }
+        item.changeColor(Color.PALEVIOLETRED);
     }
 
     private void endCash(Item item) {
@@ -120,12 +186,12 @@ public class HelloController implements Initializable {
         preparation.removeItem(item);
     }
 
-    private void startPreparation(Item item) {
+    private void arrivalPreparation(Item item) {
         int id = item.getId();
         User currentUser = usersInSystem.get(id);
         currentUser.getFlow().add(Stops.PREPARATION);
-        currentUser.setTimeStartPreparation(DatesUtil.now());
-        Item aItem = new Item(id, preparationActions);
+        currentUser.setArrivalPreparation(DatesUtil.now());
+        Item aItem = new Item(id, preparationActions, preparationKeybinds);
         preparation.addItem(aItem);
     }
 
@@ -133,6 +199,9 @@ public class HelloController implements Initializable {
         System.out.println("===== On end attendance =====");
         int id = item.getId();
         User user = usersInSystem.get(id);
+        if (user.getProducts().isEmpty()) {
+            return;
+        }
         Long startPreperation = user.getTimeStartPreparation();
         Long startCash = user.getTimeStartCash();
         Long current = DatesUtil.now();
@@ -178,7 +247,7 @@ public class HelloController implements Initializable {
     }
 
     private void addUserToQueue() {
-        Item item = new Item(currentId, queueActions);
+        Item item = new Item(currentId, queueActions, queueKeybinds);
         queue.addItem(item);
         currentId++;
     }
@@ -186,6 +255,7 @@ public class HelloController implements Initializable {
     private void end(Item item){
         int id = item.getId();
         User currentUser = usersInSystem.get(id);
+        if (currentUser.getTimeStartCash() == null) return;
         Long current = DatesUtil.now();
         currentUser.setEndTime(current);
         Long preparationStart = currentUser.getTimeStartPreparation();
@@ -219,7 +289,7 @@ public class HelloController implements Initializable {
         user.setTimeAttendance(DatesUtil.now());
         user.getFlow().add(Stops.ATTENDANCE);
         queue.removeItem(item);
-        Item aItem = new Item(id, attendanceActions);
+        Item aItem = new Item(id, attendanceActions, attendanceKeybinds);
         attendance.addItem(aItem);
     }
 
