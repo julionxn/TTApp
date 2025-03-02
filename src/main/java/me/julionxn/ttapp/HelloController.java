@@ -3,6 +3,7 @@ package me.julionxn.ttapp;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import me.julionxn.ttapp.endpoint.EndpointsManager;
@@ -42,6 +43,11 @@ public class HelloController implements Initializable {
         this.attendance = new QueueManager(attendancePane);
         this.preparation = new QueueManager(preparationQueue);
         this.cash = new QueueManager(cashQueue);
+        root.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.Q) {
+                newQueue();
+            }
+        });
     }
 
     private final Map<String, Consumer<Item>> queueActions = new HashMap<>(){{
