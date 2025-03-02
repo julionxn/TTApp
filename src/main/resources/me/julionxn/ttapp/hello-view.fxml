@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.julionxn.ttapp.HelloController">
+   <children>
+      <AnchorPane fx:id="queuePane" layoutY="50.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="250.0" />
+      <AnchorPane fx:id="attendancePane" layoutX="250.0" layoutY="50.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="250.0" />
+      <AnchorPane fx:id="preparationQueue" layoutX="500.0" layoutY="50.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="250.0" />
+      <AnchorPane fx:id="cashQueue" layoutX="750.0" layoutY="50.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="550.0" prefWidth="250.0" />
+      <Button layoutX="21.0" layoutY="16.0" mnemonicParsing="false" onAction="#newQueue" text="Nuevo ingreso" />
+      <Label layoutX="144.0" layoutY="20.0" text="Fila" />
+      <Label layoutX="348.0" layoutY="20.0" text="Productos" />
+      <Label layoutX="598.0" layoutY="20.0" text="Preparacion" />
+      <Label layoutX="862.0" layoutY="20.0" text="Pago" />
+      <Button layoutX="945.0" layoutY="17.0" mnemonicParsing="false" onAction="#gen" text="Gen" />
+   </children>
+</AnchorPane>
